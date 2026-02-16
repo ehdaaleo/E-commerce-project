@@ -1,0 +1,43 @@
+
+===========auth api==============
+
+http://localhost:3000/auth/signup [post]
+
+{
+  "name": "Mahmoud ramadan",
+  "email": "mahmoud@gmail.com",
+  "password": "123456",
+  "phone": "05889985",
+  "address": "matai"
+}
+
+
+// error req
+
+{
+  "name": "Mo",
+  "email": "mahmoud.iti",
+  "password": "123"
+}
+
+
+
+http://localhost:3000/auth/signin [post]
+
+{
+  "email": "mahmoud@gmail.com",
+  "password": "123456"
+}
+
+/ error validation req
+{
+  "email": "mahmoud.com",
+  "password": "000000"
+}
+
+//error credentials
+
+{
+  "email": "mahmoud@gmail.com",
+  "password": "000000"
+}
