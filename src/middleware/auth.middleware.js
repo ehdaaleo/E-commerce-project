@@ -1,0 +1,70 @@
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
+
+export const auth = async (req, res, next) => {
+    try {
+        let token;
+
+        if (
+            req.headers.authorization &&
+            req.headers.authorization.startsWith('Bearer')
+        ) {
+            token = req.headers.authorization.split(' ')[1];
+        }
+
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                timstamp: new Date(),
+                message: 'Please Signin',
+            });
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        const user = await User.findById(decoded.id).select('-password');
+
+        if (!user) {
+            return res.status(401).json({
+                timestamp: new Date(),
+                success: false,
+                message: 'User not found',
+            });
+        }
+
+        req.user = user;
+
+        next();
+    } catch (error) {
+        return res.status(401).json({
+            success: false,
+            message: 'Not authorized, Please Sing in',
+        });
+    }
+};
+
+export const authorize = (Model) => {
+    return async (req, res, next) => {
+        const resource = await Model.findById(req.params.id);
+
+        if (!resource) {
+            return res
+                .status(404)
+                .json({ timestamp: new Date(), message: 'Not found' });
+        }
+
+        if (req.user.role === 'admin') {
+            req.resource = resource;
+            return next();
+        }
+
+        if (resource['user_id'].toString() !== req.user._id.toString()) {
+            return res.status(403).json({
+                message: 'Not Allowed',
+            });
+        }
+
+        req.resource = resource;
+        next();
+    };
+};
