@@ -15,7 +15,7 @@ app.get('/', (req, res) => {
 
 app.get('/home', (req, res) => {
     res.send({
-        message: 'welcome to home our website',
+        message: 'welcome to our home website ',
     });
 });
 
