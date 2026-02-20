@@ -1,18 +1,20 @@
 import express from 'express';
 const router = express.Router();
-const {
-  createOrder,
-  getMyOrders,
-  getOrder,
-  updateOrderStatus,
-  cancelOrder,
-  getAllOrders,
-  updatePaymentStatus
-} = require('../controllers/orderController');
-const { protect, authorize } = require('../middleware/auth');
 
+// const {} = require('../controllers/orderController');
 
-router.use(protect);
+import {
+    createOrder,
+    getMyOrders,
+    getOrder,
+    updateOrderStatus,
+    cancelOrder,
+    getAllOrders,
+    updatePaymentStatus,
+} from '../controllers/orderController.js';
+import { auth, authorize } from '../middleware/auth.middleware.js';
+
+router.use(auth);
 router.post('/', createOrder);
 router.get('/my-orders', getMyOrders);
 router.get('/:id', getOrder);

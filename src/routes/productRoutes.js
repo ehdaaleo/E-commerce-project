@@ -8,15 +8,15 @@ import {
     addImages,
     getUserProducts,
     getLowStockProducts,
-    searchProducts
+    searchProducts,
 } from '../controllers/productController.js';
-import { protect, authorize } from '../middleware/auth.js';
+import { auth, authorize } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 router.get('/', getProducts);
 router.get('/search', searchProducts);
 router.get('/:id', getProduct);
-router.use(protect);
+router.use(auth);
 router.get('/user/me', getUserProducts);
 router.post('/', authorize('admin'), createProduct);
 router.put('/:id', authorize('admin'), updateProduct);
