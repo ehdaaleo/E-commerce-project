@@ -28,9 +28,7 @@ API ENDPOINTS SUMMARY
 7	PUT	 /orders/:id/payment Update payment       Admin
 
 5- categray 
-API ENDPOINTS 
-
-Method	Endpoint	Description	Access
+# Method	Endpoint	Description	Access
 GET	/api/categories	Get all categories	Public
 GET	/api/categories/:id	Get one category	Public
 POST	/api/categories	Create category	Admin

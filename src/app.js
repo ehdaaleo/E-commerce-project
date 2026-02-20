@@ -4,6 +4,10 @@ import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
+import productRoutes from './routes/productRoutes.js';
+import categoryRoutes from './routes/categoryRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
+
 
 export const app = express();
 app.use(express.json());
@@ -26,10 +30,11 @@ app.get('/home', (req, res) => {
 
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
-app.use('/api/products', productRoutes);
 app.use('/cart', cartRoutes);
-app.use('/orders', orderRoutes);
-app.use('/api/categories', categoryRoutes);
+app.use('/api/product',productRoutes);
+app.use('/api/category',categoryRoutes);
+app.use('/api/orders',orderRoutes);
+
 
 const startServer = async () => {
     await connectDB();

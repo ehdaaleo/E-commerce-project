@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const OrderSchema = new mongoose.Schema({
   user: {
@@ -66,4 +66,5 @@ OrderSchema.pre('save', async function(next) {
   next();
 });
 
-module.exports = mongoose.model('Order', OrderSchema);
+const Order = mongoose.model('Order', OrderSchema);
+export default Order;

@@ -1,14 +1,12 @@
-const Order = require('../models/Order');
+import Order from '../models/order.model.js ';
 
 
-exports.createOrder = async (req, res) => {
+export const createOrder = async (req, res) => {
   try {
     const { items, shippingAddress, paymentMethod } = req.body;
 
-    
     const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
- 
     const order = await Order.create({
       user: req.user.id,
       items,
@@ -32,7 +30,7 @@ exports.createOrder = async (req, res) => {
 };
 
 
-exports.getMyOrders = async (req, res) => {
+export const getMyOrders = async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user.id })
       .sort('-createdAt');
@@ -50,7 +48,7 @@ exports.getMyOrders = async (req, res) => {
   }
 };
 
-exports.getOrder = async (req, res) => {
+export const getOrder = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
 
@@ -81,7 +79,7 @@ exports.getOrder = async (req, res) => {
   }
 };
 
-exports.updateOrderStatus = async (req, res) => {
+export const updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
 
@@ -109,8 +107,7 @@ exports.updateOrderStatus = async (req, res) => {
   }
 };
 
-
-exports.cancelOrder = async (req, res) => {
+export const cancelOrder = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
 
@@ -128,7 +125,6 @@ exports.cancelOrder = async (req, res) => {
       });
     }
 
-    
     if (order.orderStatus !== 'pending') {
       return res.status(400).json({
         success: false,
@@ -151,8 +147,7 @@ exports.cancelOrder = async (req, res) => {
   }
 };
 
-
-exports.getAllOrders = async (req, res) => {
+export const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find().populate('user', 'name email').sort('-createdAt');
 
@@ -169,7 +164,7 @@ exports.getAllOrders = async (req, res) => {
   }
 };
 
-exports.updatePaymentStatus = async (req, res) => {
+export const updatePaymentStatus = async (req, res) => {
   try {
     const { paymentStatus } = req.body;
 
