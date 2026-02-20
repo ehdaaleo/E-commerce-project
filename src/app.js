@@ -8,7 +8,6 @@ import productRoutes from './routes/productRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 
-
 export const app = express();
 app.use(express.json());
 app.use(cookieParser());
@@ -40,7 +39,7 @@ const startServer = async () => {
     await connectDB();
     app.listen(PORT, () => {
         console.log(
-            'Server is running on port 3000, click here: http://localhost:' +
+            'Server is running on port ' + PORT + ', click here: http://localhost:' +
             PORT
         );
     });
