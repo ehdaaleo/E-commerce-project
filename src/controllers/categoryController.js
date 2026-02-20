@@ -25,9 +25,9 @@ export const getCategory = async (req, res) => {
     }
 };
 
+// CREATE category - Admin only
 export const createCategory = async (req, res) => {
     try {
-        // console.log('c1');
         if (req.user.role !== 'admin') {
             return res.status(403).json({
                 success: false,
@@ -35,27 +35,24 @@ export const createCategory = async (req, res) => {
             });
         }
 
-        // console.log('c2');
-
         const { name, description, slug } = req.body;
 
         const exists = await Category.findOne({ name });
-        // console.log('c3');
-
         if (exists) {
             return res
                 .status(400)
                 .json({ success: false, message: 'Category already exists' });
         }
-        // console.log('c4');
 
-        const category = await Category.create({ name, description, slug });
-        // console.log('c5');
+        const category = await Category.create({
+            name,
+            description,
+            slug,
+            isActive: true,
+        });
 
         res.status(201).json({ success: true, category });
     } catch (error) {
-        // console.log('c6');
-
         res.status(500).json({ success: false, message: error.message });
     }
 };
@@ -87,8 +84,8 @@ export const updateCategory = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
-//delete category - Admin only
 
+// DELETE category - Admin only
 export const deleteCategory = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
