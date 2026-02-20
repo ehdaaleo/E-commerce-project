@@ -1,0 +1,15 @@
+- user management endpoints [updateUser, changeRole, deleteUser, getAllUsers with pagination and validation and secure endpoints]
+- created the auth api signin, signup [routes, controller, valiation]
+- validation with ajv libariry instead of joi libarary
+- authorization auth middleware [we will put it in every routes to check if user logged and has token]
+- authorize middleware [who should access the resource onwer or admin]
+- what i will do next
+    - confirmation [using email]
+    - forget password [using email]
+    - payment gate handing
+
+Note-> i edited the .env file
+pute your own env variables
+
+MONGO_URI=mongodb://localhost:27017/ecommerce
+JWT_SECRET=aySecretKey

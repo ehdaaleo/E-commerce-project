@@ -202,7 +202,7 @@ const productSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Virtuals
+
 productSchema.virtual('discountPercentage').get(function() {
   if (this.compareAtPrice && this.compareAtPrice > this.price) {
     return Math.round(((this.compareAtPrice - this.price) / this.compareAtPrice) * 100);
@@ -358,6 +358,6 @@ productSchema.statics.getLowStockProducts = function() {
     deletedAt: null
   });
 };
-
 const Product = mongoose.model('Product', productSchema);
 export default Product;
+
