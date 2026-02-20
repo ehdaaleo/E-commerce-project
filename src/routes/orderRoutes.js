@@ -1,6 +1,5 @@
 import express from 'express';
-const router = express.Router();
-const {
+import { 
   createOrder,
   getMyOrders,
   getOrder,
@@ -8,11 +7,11 @@ const {
   cancelOrder,
   getAllOrders,
   updatePaymentStatus
-} = require('../controllers/orderController');
-const { protect, authorize } = require('../middleware/auth');
+} from '../controllers/orderController.js';
+import { auth, authorize } from '../middleware/auth.middleware.js';  // Use auth directly
 
-
-router.use(protect);
+const router = express.Router();
+router.use(auth);
 router.post('/', createOrder);
 router.get('/my-orders', getMyOrders);
 router.get('/:id', getOrder);
