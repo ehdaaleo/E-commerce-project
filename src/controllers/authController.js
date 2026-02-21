@@ -2,7 +2,7 @@ import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { validateSignin, validateSignup } from "../middleware/validation.js";
-import sendEmail from "../utils/emailService.js";
+import sendEmail from "../email/email.js";
 
 export const signup = async (req, res) => {
   console.log("1");
