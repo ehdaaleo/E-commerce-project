@@ -1,6 +1,8 @@
 import Product from '../models/product.js';
 import Category from '../models/category.js';
 
+// GET all products with filters and pagination
+
 export const getProducts = async (req, res) => {
     try {
         const {
@@ -28,7 +30,7 @@ export const getProducts = async (req, res) => {
 
         const products = await Product.find(query)
             .populate('category', 'name')
-            .populate('user', 'name email')
+            .populate('createdBy', 'name email')
             .skip(skip)
             .limit(parseInt(limit))
             .sort('-createdAt');
@@ -48,11 +50,12 @@ export const getProducts = async (req, res) => {
     }
 };
 
+// GET single product by ID
 export const getProduct = async (req, res) => {
     try {
         const product = await Product.findById(req.params.id)
             .populate('category', 'name')
-            .populate('user', 'name email');
+            .populate('createdBy', 'name email');
 
         if (!product) {
             return res
@@ -69,6 +72,7 @@ export const getProduct = async (req, res) => {
     }
 };
 
+// CREATE new product (Admin only)
 export const createProduct = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
@@ -99,8 +103,8 @@ export const createProduct = async (req, res) => {
             description,
             price,
             category,
-            sku,
             createdBy: req.user.id,
+            sku,
             inventory: { quantity: inventory || 0 },
         });
 
@@ -110,6 +114,7 @@ export const createProduct = async (req, res) => {
     }
 };
 
+// UPDATE product (Admin only)
 export const updateProduct = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
@@ -119,7 +124,14 @@ export const updateProduct = async (req, res) => {
             });
         }
 
-        let product = await Product.findById(req.params.id);
+        const product = await Product.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            {
+                new: true,
+                runValidators: true,
+            }
+        );
 
         if (!product) {
             return res
@@ -127,17 +139,13 @@ export const updateProduct = async (req, res) => {
                 .json({ success: false, message: 'Product not found' });
         }
 
-        product = await Product.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true,
-        });
-
         res.json({ success: true, product });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 };
 
+// DELETE product (Admin only)
 export const deleteProduct = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
@@ -148,15 +156,14 @@ export const deleteProduct = async (req, res) => {
         }
 
         const product = await Product.findById(req.params.id);
-
         if (!product) {
             return res
                 .status(404)
                 .json({ success: false, message: 'Product not found' });
         }
 
-        product.deletedAt = new Date();
         product.isActive = false;
+        product.deletedAt = new Date();
         await product.save();
 
         res.json({ success: true, message: 'Product deleted successfully' });
@@ -165,17 +172,16 @@ export const deleteProduct = async (req, res) => {
     }
 };
 
+// ADD images to product (Admin only)
 export const addImages = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
-            return res.status(403).json({
-                success: false,
-                message: 'Only admin can add images',
-            });
+            return res
+                .status(403)
+                .json({ success: false, message: 'Only admin can add images' });
         }
 
         const product = await Product.findById(req.params.id);
-
         if (!product) {
             return res
                 .status(404)
@@ -183,7 +189,6 @@ export const addImages = async (req, res) => {
         }
 
         const { images } = req.body;
-
         for (const img of images) {
             await product.addImage(img);
         }
@@ -194,19 +199,20 @@ export const addImages = async (req, res) => {
     }
 };
 
+// GET products created by current user
 export const getUserProducts = async (req, res) => {
     try {
         const products = await Product.find({
-            user: req.user.id,
+            createdBy: req.user.id,
             deletedAt: null,
         }).sort('-createdAt');
-
         res.json({ success: true, count: products.length, products });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 };
 
+// GET low stock products (Admin only)
 export const getLowStockProducts = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
@@ -231,10 +237,10 @@ export const getLowStockProducts = async (req, res) => {
     }
 };
 
+// SEARCH products
 export const searchProducts = async (req, res) => {
     try {
         const { q, page = 1, limit = 10 } = req.query;
-
         const skip = (page - 1) * limit;
 
         const products = await Product.find({
@@ -243,7 +249,7 @@ export const searchProducts = async (req, res) => {
             deletedAt: null,
         })
             .populate('category', 'name')
-            .populate('user', 'name email')
+            .populate('createdBy', 'name email')
             .skip(skip)
             .limit(parseInt(limit))
             .sort({ score: { $meta: 'textScore' } });

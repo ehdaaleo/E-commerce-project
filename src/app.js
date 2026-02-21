@@ -8,9 +8,15 @@ import productRoutes from './routes/productRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import wishlistRoutes from './routes/wishlistRoutes.js';
+<<<<<<< HEAD
 import reviewRoutes from './routes/reviewRoutes.js';
+import promoRoutes from './routes/promoRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 
+=======
+import reviewRoutes  from './routes/reviewRoutes.js';
+import promoRoutes from './routes/promoRoutes.js';
+>>>>>>> development
 export const app = express();
 app.use(express.json());
 app.use(cookieParser());
@@ -31,13 +37,22 @@ app.get('/home', (req, res) => {
 
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
-app.use('/cart', cartRoutes);
-app.use('/product', productRoutes);
-app.use('/category', categoryRoutes);
-app.use('/orders', orderRoutes);
-app.use('/wishlist', wishlistRoutes);
-app.use('/reviews', reviewRoutes);
+app.use('/carts', cartRoutes);
+<<<<<<< HEAD
+app.use('/api/products', productRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/wishlists', wishlistRoutes);
+app.use('/api/reviews', reviewRoutes);
 app.use('/payment', paymentRoutes);
+=======
+app.use('/api/products',productRoutes);
+app.use('/api/categories',categoryRoutes);
+app.use('/api/orders',orderRoutes);
+app.use('/api/wishlists', wishlistRoutes);
+app.use('/api/reviews',reviewRoutes);
+>>>>>>> development
+app.use('/api/promos', promoRoutes);
 
 const startServer = async () => {
     await connectDB();

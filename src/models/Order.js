@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 
+// import { v4 as uuidv4 } from 'uuid';
+
 const OrderSchema = new mongoose.Schema(
     {
         user: {
@@ -70,24 +72,13 @@ const OrderSchema = new mongoose.Schema(
             default: false,
         },
     },
-    {
-        timestamps: true,
-    }
+    { timestamps: true }
 );
 
-// OrderSchema.pre('save', async function (next) {
-//     console.log('0');
+// OrderSchema.pre('save', function (next) {
 //     if (!this.orderNumber) {
-//         const date = new Date();
-//         const year = date.getFullYear().toString().slice(-2);
-//         const month = (date.getMonth() + 1).toString().padStart(2, '0');
-//         const day = date.getDate().toString().padStart(2, '0');
-//         const random = Math.floor(Math.random() * 1000)
-//             .toString()
-//             .padStart(3, '0');
-//         this.orderNumber = `ORD-${year}${month}${day}-${random}`;
+//         this.orderNumber = `ORD-${uuidv4().slice(0, 8)}`;
 //     }
-//     console.log(5);
 //     next();
 // });
 
