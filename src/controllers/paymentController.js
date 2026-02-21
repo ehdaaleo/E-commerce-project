@@ -1,6 +1,7 @@
 import stripe from '../utils/paymentService.js';
 import Order from '../models/Order.js';
 import Payment from '../models/payment.model.js';
+import Product from '../models/product.js';
 
 export const createCheckoutSession = async (req, res) => {
     try {
@@ -17,7 +18,7 @@ export const createCheckoutSession = async (req, res) => {
                 price_data: {
                     currency: 'egp',
                     product_data: { name: item.name },
-                    unit_amount: item.price * 100,
+                    unit_amount: Math.round(item.price * 100),
                 },
                 quantity: item.quantity,
             })),
@@ -62,6 +63,14 @@ export const success = async (req, res) => {
             order.orderStatus = 'processing';
             order.isPaid = true;
             await order.save();
+
+            // Deduct inventory after confirmed payment
+            for (const item of order.items) {
+                await Product.updateOne(
+                    { _id: item.product },
+                    { $inc: { 'inventory.quantity': -item.quantity, soldCount: item.quantity } }
+                );
+            }
         }
 
         res.send(`

@@ -2,6 +2,7 @@ import crypto from "crypto";
 import Cart from "../models/cart.model.js";
 import CartItem from "../models/cartItem.model.js";
 import Product from "../models/product.js";
+import Order from "../models/Order.js";
 
 const COOKIE_NAME = "guest_session";
 const COOKIE_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days for cookie
@@ -9,7 +10,7 @@ const COOKIE_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days for cookie
 const getOrCreateCart = async (req, res) => {
   const sessionId = req.cookies[COOKIE_NAME];
 
-  // ── Logged-in user ──
+  // Logged-in user 
   if (req.user) {
     let userCart = await Cart.findOne({ user_id: req.user._id });
 
@@ -55,7 +56,7 @@ const getOrCreateCart = async (req, res) => {
     return userCart;
   }
 
-  // ── Guest user ──
+  //  Guest user 
   if (!sessionId) {
     const newSessionId = crypto.randomUUID();
     res.cookie(COOKIE_NAME, newSessionId, {
@@ -207,6 +208,94 @@ export const clearCart = async (req, res) => {
 
     await CartItem.deleteMany({ cart_id: cart._id });
     res.status(200).json({ success: true, message: "Cart cleared" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Checkout – convert cart into a pending Order
+// @route   POST /api/cart/checkout
+// @access  Private (requires auth)
+export const checkout = async (req, res) => {
+  try {
+    // 1. Must be logged in to checkout
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: "Please sign in to checkout" });
+    }
+
+    // 2. Load the cart and its items
+    const cart = await getOrCreateCart(req, res);
+    const cartItems = await CartItem.find({ cart_id: cart._id }).populate(
+      "product_id",
+      "name price inventory"
+    );
+
+    if (!cartItems.length) {
+      return res.status(400).json({ success: false, message: "Cart is empty" });
+    }
+
+    // 3. Validate stock and build order items
+    const orderItems = [];
+    let totalAmount = 0;
+   // check product exist and stock 
+    for (const item of cartItems) {
+      if (!item.product_id) {
+        return res.status(400).json({
+          success: false,
+          message: `A product in your cart no longer exists. Please remove it and try again.`,
+        });
+      }
+
+      if (item.product_id.inventory.quantity < item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Not enough stock for "${item.product_id.name}". Available: ${item.product_id.inventory.quantity}`,
+        });
+      }
+
+      orderItems.push({
+        product: item.product_id._id,
+        name: item.product_id.name,
+        price: item.product_id.price,
+        quantity: item.quantity,
+      });
+
+      totalAmount += item.product_id.price * item.quantity;
+    }
+
+    // 4. Read shipping And payment info from body
+    const { shippingAddress, paymentMethod = "card" } = req.body;
+
+    if (!shippingAddress) {
+      return res.status(400).json({ success: false, message: "Shipping address is required" });
+    }
+
+    // 5. Generate order number
+    const orderNumber = `ORD-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
+
+    // 6. Create the Order
+    const order = await Order.create({
+      user: req.user._id,
+      items: orderItems,
+      totalAmount,
+      shippingAddress,
+      paymentMethod,
+      orderStatus: "pending",
+      paymentStatus: "pending",
+      orderNumber,
+    });
+
+    // 7. Clear the cart
+    await CartItem.deleteMany({ cart_id: cart._id });
+
+    // 8. Return order info
+    res.status(201).json({
+      success: true,
+      message: "Order created successfully",
+      order_id: order._id,
+      orderNumber: order.orderNumber,
+      totalAmount: order.totalAmount,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
