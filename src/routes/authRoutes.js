@@ -1,6 +1,6 @@
 import express from "express";
 import User from "../models/user.model.js";
-
+import { auth } from "../middleware/auth.middleware.js";
 import {
   signin,
   signup,
@@ -15,7 +15,7 @@ router.post("/signup", signup);
 router.post("/signin", signin);
 
 router.get("/verify-email/:email", verifyEmail);
-router.put("/reset-password", resetPassword);
+router.put("/reset-password", auth, resetPassword);
 
 // src/routes/authRoutes.js
 router.get("/confirm/:email", async (req, res) => {

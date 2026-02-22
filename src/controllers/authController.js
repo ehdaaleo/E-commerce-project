@@ -108,7 +108,7 @@ export const signin = async (req, res) => {
     }
 
     // Check if email is confirmed
-    if (user.isConfrmed === false) {
+    if (user.isConfirmed === false) {
       return res.status(401).json({
         timestamp: new Date(),
         success: false,
@@ -186,6 +186,7 @@ export const resetPassword = async (req, res) => {
       message: "Password updated",
     });
   } catch (error) {
+    console.log(req.user);
     res.status(500).json({
       success: false,
       message: error.message,
