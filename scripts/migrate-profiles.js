@@ -11,8 +11,8 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 // Debug: Check if env loaded
-console.log('📁 Current directory:', process.cwd());
-console.log('🔍 MONGODB_URI:', process.env.MONGO_URI ? '✅ Found' : '❌ Not found');
+console.log(' Current directory:', process.cwd());
+console.log(' MONGODB_URI:', process.env.MONGO_URI ? 'Found' : ' Not found');
 
 import User from '../src/models/user.model.js';
 import Profile from '../src/models/Profile.js';
@@ -24,12 +24,12 @@ async function migrateProfiles() {
       throw new Error('MONGO_URI is not defined in .env file');
     }
 
-    console.log('🔌 Connecting to MongoDB...');
+    console.log('Connecting to MongoDB...');
     await mongoose.connect(process.env.MONGO_URI);
-    console.log('✅ Database connected');
+    console.log(' Database connected');
 
     const users = await User.find();
-    console.log(`📊 Found ${users.length} users`);
+    console.log(` Found ${users.length} users`);
 
     let created = 0;
     let skipped = 0;
@@ -59,21 +59,21 @@ async function migrateProfiles() {
           }
         });
         created++;
-        console.log(`✅ Created profile for ${user.email}`);
+        console.log(` Created profile for ${user.email}`);
       } else {
         skipped++;
       }
     }
 
-    console.log('\n📊 Migration Complete:');
-    console.log(`   ✅ Created: ${created} profiles`);
-    console.log(`   ⏭️  Skipped: ${skipped} profiles`);
+    console.log('\n Migration Complete:');
+    console.log(`   Created: ${created} profiles`);
+    console.log(`    Skipped: ${skipped} profiles`);
 
   } catch (error) {
-    console.error('❌ Migration error:', error.message);
+    console.error(' Migration error:', error.message);
   } finally {
     await mongoose.disconnect();
-    console.log('👋 Disconnected from database');
+    console.log(' Disconnected from database');
   }
 }
 
