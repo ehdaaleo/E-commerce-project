@@ -85,10 +85,10 @@ const productSchema = new mongoose.Schema(
             title: String,
             description: String,
             keywords: [String],
-            slug: { type: String, unique: true, 
-                   sparse: true,
-                lowercase: true 
-
+            slug: {
+                type: String,
+                lowercase: true,
+                trim: true,
             },
         },
         ratings: {
@@ -131,7 +131,6 @@ const productSchema = new mongoose.Schema(
         toObject: { virtuals: true },
     }
 );
-
 
 const Product = mongoose.model('Product', productSchema);
 export default Product;

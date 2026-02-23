@@ -2,58 +2,61 @@ import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import {
-  getMyProfile,
-  updateMyProfile,
-  uploadProfilePicture,
-  uploadCoverPicture,
-  getAddresses,
-  addAddress,
-  updateAddress,
-  deleteAddress,
-  setDefaultAddress,
-  getPaymentMethods,
-  addPaymentMethod,
-  deletePaymentMethod,
-  setDefaultPaymentMethod,
-  getPreferences,
-  updatePreferences,
-  getProfileCompletion
+    getMyProfile,
+    updateMyProfile,
+    uploadProfilePicture,
+    uploadCoverPicture,
+    getAddresses,
+    addAddress,
+    updateAddress,
+    deleteAddress,
+    setDefaultAddress,
+    getPaymentMethods,
+    addPaymentMethod,
+    deletePaymentMethod,
+    setDefaultPaymentMethod,
+    getPreferences,
+    updatePreferences,
+    getProfileCompletion,
 } from '../controllers/profileController.js';
-import { auth } from '../middleware/auth.middleware.js';
+import { auth, authorize } from '../middleware/auth.middleware.js';
+import Profile from '../models/Profile.js';
 
 const router = express.Router();
 
 // Multer setup for file uploads
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const folder = file.fieldname === 'coverPicture' ? 'covers' : 'profiles';
-    cb(null, `uploads/${folder}/`);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const field = file.fieldname === 'coverPicture' ? 'cover' : 'profile';
-    cb(null, `${field}-${uniqueSuffix}${path.extname(file.originalname)}`);
-  }
+    destination: (req, file, cb) => {
+        const folder =
+            file.fieldname === 'coverPicture' ? 'covers' : 'profiles';
+        cb(null, `uploads/${folder}/`);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        const field = file.fieldname === 'coverPicture' ? 'cover' : 'profile';
+        cb(null, `${field}-${uniqueSuffix}${path.extname(file.originalname)}`);
+    },
 });
 
 const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-    
-    if (mimetype && extname) {
-      return cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed'));
-    }
-  }
+    storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = /jpeg|jpg|png|gif|webp/;
+        const extname = allowedTypes.test(
+            path.extname(file.originalname).toLowerCase()
+        );
+        const mimetype = allowedTypes.test(file.mimetype);
+
+        if (mimetype && extname) {
+            return cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed'));
+        }
+    },
 });
 
-// All routes require authentication
-router.use(auth);
+router.use(auth, authorize(Profile));
 
 router.get('/', getMyProfile);
 router.put('/', updateMyProfile);
