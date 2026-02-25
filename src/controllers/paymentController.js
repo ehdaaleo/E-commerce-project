@@ -1,7 +1,7 @@
 import stripe from '../utils/paymentService.js';
-import Order from '../models/Order.js';
-import Payment from '../models/payment.model.js';
-import Product from '../models/product.js';
+import Order from '../models/order/Order.js';
+import Payment from '../models/payment/payment.model.js';
+import Product from '../models/product/product.js';
 
 export const createCheckoutSession = async (req, res) => {
     try {

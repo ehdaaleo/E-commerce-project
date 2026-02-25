@@ -1,5 +1,5 @@
-import Profile from '../models/Profile.js';
-import User from '../models/user.model.js';
+import Profile from '../models/profile/Profile.js';
+import User from '../models/user/user.model.js';
 
 // ===== HELPER FUNCTION =====
 const getProfile = async (userId) => {

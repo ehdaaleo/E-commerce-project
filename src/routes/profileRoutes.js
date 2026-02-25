@@ -20,7 +20,7 @@ import {
     getProfileCompletion,
 } from '../controllers/profileController.js';
 import { auth, authorize } from '../middleware/auth.middleware.js';
-import Profile from '../models/Profile.js';
+import Profile from '../models/profile/Profile.js';
 
 const router = express.Router();
 

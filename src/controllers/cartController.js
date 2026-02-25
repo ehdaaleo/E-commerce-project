@@ -1,8 +1,8 @@
 import crypto from 'crypto';
-import Cart from '../models/cart.model.js';
-import CartItem from '../models/cartItem.model.js';
-import Product from '../models/product.js';
-import Order from '../models/Order.js';
+import Cart from '../models/cart/cart.model.js';
+import CartItem from '../models/cart/cartItem.model.js';
+import Product from '../models/product/product.js';
+import Order from '../models/order/Order.js';
 
 const COOKIE_NAME = 'guest_session';
 const COOKIE_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days for cookie

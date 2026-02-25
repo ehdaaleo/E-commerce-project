@@ -8,7 +8,7 @@ import {
     validatePromo,
 } from '../controllers/promoController.js';
 import { adminOnly, auth, authorize } from '../middleware/auth.middleware.js';
-import PromoCode from '../models/promo_code.model.js';
+import PromoCode from '../models/promocode/promoCode.js';
 
 const router = express.Router();
 

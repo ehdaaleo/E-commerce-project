@@ -6,7 +6,7 @@ import {
     changeUserRole,
     getUserById,
 } from '../controllers/userController.js';
-import User from '../models/user.model.js';
+import User from '../models/user/user.model.js';
 
 import { adminOnly, auth, authorize } from '../middleware/auth.middleware.js';
 

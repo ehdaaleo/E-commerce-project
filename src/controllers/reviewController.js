@@ -1,5 +1,5 @@
-import Review from '../models/Review.js';
-import Product from '../models/product.js';
+import Review from '../models/review/review.model.js';
+import Product from '../models/product/product.js';
 import mongoose from 'mongoose';
 
 

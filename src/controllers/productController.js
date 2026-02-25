@@ -1,5 +1,5 @@
-import Product from '../models/product.js';
-import Category from '../models/category.js';
+import Product from '../models/product/product.js';
+import Category from '../models/category/category.js';
 
 // GET all products with filters and pagination
 

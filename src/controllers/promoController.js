@@ -1,4 +1,4 @@
-import PromoCode from '../models/promo_code.model.js';
+import PromoCode from '../models/promocode/promoCode.js';
 
 // @desc    Get all promo codes
 // @route   GET /api/promos

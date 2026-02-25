@@ -9,7 +9,7 @@ import {
     updatePaymentStatus,
 } from '../controllers/orderController.js';
 import { adminOnly, auth, authorize } from '../middleware/auth.middleware.js';
-import Order from '../models/Order.js';
+import Order from '../models/order/Order.js';
 
 const router = express.Router();
 

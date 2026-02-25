@@ -11,7 +11,7 @@ import {
     searchProducts,
 } from '../controllers/productController.js';
 import { adminOnly, auth, authorize } from '../middleware/auth.middleware.js'; // Changed from 'protect' to 'auth'
-import Product from '../models/product.js';
+import Product from '../models/product/product.js';
 
 const router = express.Router();
 

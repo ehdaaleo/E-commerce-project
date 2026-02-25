@@ -1,5 +1,5 @@
 import { validateUserUpdate } from '../middleware/validation.js';
-import User from '../models/user.model.js';
+import User from '../models/user/user.model.js';
 import { success } from './paymentController.js';
 
 export const getUserById = async (req, res) => {
