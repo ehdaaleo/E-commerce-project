@@ -4,13 +4,16 @@ dotenv.config();
 
 const connectDB = async () => {
     try {
+        // Prevent reconnecting if already connected (useful for serverless)
+        if (mongoose.connection.readyState >= 1) return;
+
         const mongoURI = process.env.MONGODB_URI ||
-         process.env.MONGO_URI || 'mongodb://localhost:27017/ecommerce';
+            process.env.MONGO_URI || 'mongodb://localhost:27017/ecommerce';
         await mongoose.connect(mongoURI);
         console.log('MongoDB Connected');
     } catch (error) {
-        console.error(error.message);
-        process.exit(1);
+        console.error("MongoDB Connection Error:", error.message);
+        throw error;
     }
 };
 

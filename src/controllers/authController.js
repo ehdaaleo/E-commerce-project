@@ -57,6 +57,7 @@ export const signup = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Auth Controller Error:", error);
     res.status(500).json({
       timestamp: new Date(),
       success: false,
@@ -123,6 +124,7 @@ export const signin = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Auth Controller Error:", error);
     res.status(500).json({
       timestamp: new Date(),
       success: false,
@@ -247,6 +249,7 @@ export const resetPassword = async (req, res) => {
       message: "Password updated successfully",
     });
   } catch (error) {
+    console.error("Auth Controller Error:", error);
     res.status(500).json({
       success: false,
       message: error.message,
