@@ -1,21 +1,21 @@
-import express from 'express';
-import User from '../models/user.model.js';
-import { auth } from '../middleware/auth.middleware.js';
+import express from "express";
+import User from "../models/user.model.js";
+import { auth } from "../middleware/auth.middleware.js";
 import {
-    signin,
-    signup,
-    verifyEmail,
-    resetPassword,
-} from '../controllers/authController.js';
+  signin,
+  signup,
+  verifyEmail,
+  resetPassword,
+} from "../controllers/authController.js";
 
 const router = express.Router();
 
-router.post('/signup', signup);
+router.post("/signup", signup);
 
-router.post('/signin', signin);
+router.post("/signin", signin);
 
-router.get('/verify-email/:email', verifyEmail);
-router.put('/reset-password', auth, resetPassword);
+router.get("/verify-email/:token", verifyEmail);
+router.put("/reset-password", auth, resetPassword);
 
 // router.get('/confirm/:email', async (req, res) => {
 //     try {
