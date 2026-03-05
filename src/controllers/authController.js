@@ -1,9 +1,9 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import nodemailer from "nodemailer";
 import { validateSignin, validateSignup } from "../middleware/validation.js";
 import sendEmail from "../email/email.js";
+import transporter from "../email/transporter.js";
 import { forgotPasswordTemplate } from "../email/forgotPasswordTemplate.js";
 
 export const signup = async (req, res) => {
@@ -290,22 +290,15 @@ export const forgotPassword = async (req, res) => {
       { expiresIn: "15m" },
     );
 
-    // Send the reset email
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      secure: false,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    await transporter.sendMail({
-      from: `"E-Commerce Store" <${process.env.EMAIL_USER}>`,
-      to: user.email,
-      subject: "Reset Your Password",
-      html: forgotPasswordTemplate(resetToken),
-    });
+    // Send the reset email (non-blocking — respond immediately)
+    transporter
+      .sendMail({
+        from: `"E-Commerce Store" <${process.env.EMAIL_USER}>`,
+        to: user.email,
+        subject: "Reset Your Password",
+        html: forgotPasswordTemplate(resetToken),
+      })
+      .catch((err) => console.error("Failed to send reset email:", err));
 
     res.status(200).json({
       success: true,
