@@ -6,6 +6,8 @@ import {
   signup,
   verifyEmail,
   resetPassword,
+  forgotPassword,
+  resetPasswordByToken,
 } from "../controllers/authController.js";
 
 const router = express.Router();
@@ -16,6 +18,8 @@ router.post("/signin", signin);
 
 router.get("/verify-email/:token", verifyEmail);
 router.put("/reset-password", auth, resetPassword);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password/:token", resetPasswordByToken);
 
 // router.get('/confirm/:email', async (req, res) => {
 //     try {

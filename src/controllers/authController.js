@@ -1,8 +1,10 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer";
 import { validateSignin, validateSignup } from "../middleware/validation.js";
 import sendEmail from "../email/email.js";
+import { forgotPasswordTemplate } from "../email/forgotPasswordTemplate.js";
 
 export const signup = async (req, res) => {
   try {
@@ -253,6 +255,130 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+// ─── Forgot Password (sends reset link to email) ───
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide your email address",
+      });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+      // Return success even if user not found to prevent email enumeration
+      return res.status(200).json({
+        success: true,
+        message:
+          "If an account with that email exists, a password reset link has been sent.",
+      });
+    }
+
+    // Create a short-lived token (15 minutes)
+    const secret = process.env.JWT_EMAIL_SECRET || process.env.JWT_SECRET;
+    const resetToken = jwt.sign(
+      { id: user._id, email: user.email, purpose: "password-reset" },
+      secret,
+      { expiresIn: "15m" },
+    );
+
+    // Send the reset email
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      secure: false,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    await transporter.sendMail({
+      from: `"E-Commerce Store" <${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: "Reset Your Password",
+      html: forgotPasswordTemplate(resetToken),
+    });
+
+    res.status(200).json({
+      success: true,
+      message:
+        "If an account with that email exists, a password reset link has been sent.",
+    });
+  } catch (error) {
+    console.error("Forgot Password Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong. Please try again later.",
+    });
+  }
+};
+
+// ─── Reset Password via Token (from email link) ───
+export const resetPasswordByToken = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters long",
+      });
+    }
+
+    const secret = process.env.JWT_EMAIL_SECRET || process.env.JWT_SECRET;
+    const decoded = jwt.verify(token, secret);
+
+    // Make sure this token was created for password reset
+    if (decoded.purpose !== "password-reset") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid reset token",
+      });
+    }
+
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password has been reset successfully. You can now sign in.",
+    });
+  } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        message: "Reset link has expired. Please request a new one.",
+      });
+    }
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid reset link.",
+      });
+    }
+
+    console.error("Reset Password By Token Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong. Please try again later.",
     });
   }
 };
