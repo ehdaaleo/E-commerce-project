@@ -1,6 +1,16 @@
 // services/llmService.js
 import Groq from "groq-sdk";
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+let groq;
+function getGroqClient() {
+  if (!groq) {
+    if (!process.env.GROQ_API_KEY) {
+      throw new Error("GROQ_API_KEY is not set in environment variables");
+    }
+    groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  }
+  return groq;
+}
 
 export const generateChatResponse = async (
   userMessage,
@@ -59,7 +69,7 @@ ${productContext}`;
     { role: "user", content: userMessage },
   ];
 
-  const completion = await groq.chat.completions.create({
+  const completion = await getGroqClient().chat.completions.create({
     model: "llama-3.3-70b-versatile",
     messages,
     max_tokens: 512,
