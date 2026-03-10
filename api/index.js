@@ -2,6 +2,11 @@ import { app } from "../src/app.js";
 import connectDB from "../src/config/db.js";
 
 export default async (req, res) => {
+    // Let CORS middleware handle preflight requests immediately without connecting to DB
+    if (req.method === 'OPTIONS') {
+        return app(req, res);
+    }
+
     try {
         await connectDB();
     } catch (err) {

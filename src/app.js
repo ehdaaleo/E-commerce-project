@@ -22,11 +22,13 @@ app.use(
   cors({
     origin: [
       "http://localhost:4200",
-      process.env.FRONTEND_URL, // set this in .env for production
+      "https://angular-pro-deploy.vercel.app",
+      process.env.FRONTEND_URL,
     ].filter(Boolean),
     credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization"],
-  }),
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  })
 );
 
 app.use(express.json());
