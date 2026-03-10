@@ -20,11 +20,26 @@ export default app;
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:4200",
-      "https://angular-pro-deploy.vercel.app",
-      process.env.FRONTEND_URL,
-    ].filter(Boolean),
+    origin: function (origin, callback) {
+      const allowedOrigins = [
+        "http://localhost:4200",
+        "https://angular-pro-deploy.vercel.app",
+        process.env.FRONTEND_URL,
+      ].filter(Boolean);
+
+      // Allow requests with no origin (e.g. mobile apps, Postman, server-to-server)
+      if (!origin) return callback(null, true);
+
+      // Check exact match first
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+
+      // Allow all Vercel preview deployments for abdallahadel2004s-projects
+      if (/^https:\/\/.*abdallahadel2004s-projects\.vercel\.app$/.test(origin)) {
+        return callback(null, true);
+      }
+
+      callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
