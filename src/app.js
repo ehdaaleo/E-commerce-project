@@ -24,7 +24,7 @@ app.use(
       const allowedOrigins = [
         "http://localhost:4200",
         "https://angular-pro-deploy.vercel.app",
-        process.env.FRONTEND_URL,
+        process.env.CLIENT_URL,
       ].filter(Boolean);
 
       // Allow requests with no origin (e.g. mobile apps, Postman, server-to-server)
