@@ -24,7 +24,7 @@ class CloudinaryService {
           {
             resource_type: "image",
             folder: "ecommerce/products",
-            public_id: filename.replace(/\.[^/.]+$/, ""), // Remove extension
+            public_id: filename.replace(/\.[^/.]+$/, ""), 
             format: "webp",
             quality: "auto:good",
             width: 800,

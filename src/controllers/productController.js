@@ -118,6 +118,97 @@ export const createProduct = async (req, res) => {
       inventory: { quantity: inventory || 0 },
     });
 
+    // Handle image uploads if files are provided (multipart/form-data)
+    if (req.files && req.files.length > 0) {
+      const uploadedImages = [];
+
+      try {
+        for (let i = 0; i < req.files.length; i++) {
+          const file = req.files[i];
+          
+          // Process image with Sharp
+          const processedImage = await processImage(file.buffer);
+          
+          // Upload to Cloudinary
+          const cloudinaryResult = await CloudinaryService.uploadImage(
+            processedImage.buffer,
+            processedImage.filename
+          );
+
+          const imageObj = {
+            url: cloudinaryResult.secure_url,
+            publicId: cloudinaryResult.public_id,
+            alt: req.body.alt || `Product image ${i + 1}`,
+            isPrimary: i === 0, // First image is primary
+          };
+
+          product.images.push(imageObj);
+          uploadedImages.push(imageObj);
+        }
+
+        await product.save();
+      } catch (uploadError) {
+        // Clean up already uploaded images if there's an error
+        for (const img of uploadedImages) {
+          try {
+            await CloudinaryService.deleteImage(img.publicId);
+          } catch (deleteError) {
+            console.error('Failed to cleanup uploaded image:', deleteError.message);
+          }
+        }
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Image upload failed: ' + uploadError.message 
+        });
+      }
+    }
+
+    // Handle base64 images if provided in JSON body
+    if (req.body.images && Array.isArray(req.body.images)) {
+      let hasValidBase64Image = false;
+      
+      for (let i = 0; i < req.body.images.length; i++) {
+        const base64Image = req.body.images[i];
+        
+        if (!base64Image) continue;
+        
+        if (base64Image.startsWith('data:image')) {
+          hasValidBase64Image = true;
+          
+          try {
+            // Extract base64 data (remove data:image/xxx;base64, prefix)
+            const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
+            const imageBuffer = Buffer.from(base64Data, 'base64');
+            
+            // Process and upload
+            const processedImage = await processImage(imageBuffer);
+            const cloudinaryResult = await CloudinaryService.uploadImage(
+              processedImage.buffer,
+              processedImage.filename
+            );
+
+            const imageObj = {
+              url: cloudinaryResult.secure_url,
+              publicId: cloudinaryResult.public_id,
+              alt: req.body.alt || `Product image ${i + 1}`,
+              isPrimary: product.images.length === 0 && i === 0,
+            };
+
+            product.images.push(imageObj);
+          } catch (base64Error) {
+            console.error(`Failed to process base64 image ${i + 1}:`, base64Error.message);
+          }
+        } else {
+          // Log warning for invalid base64 images
+          console.warn(`Skipping invalid base64 image at index ${i}: does not start with 'data:image'`);
+        }
+      }
+
+      if (hasValidBase64Image) {
+        await product.save();
+      }
+    }
+
     try {
       await embedProduct(product);
     } catch (e) {

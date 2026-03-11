@@ -25,7 +25,7 @@ router.get('/:id', getProduct);
 
 router.get('/user/me', auth, getUserProducts);
 
-router.post('/', auth, adminOnly, createProduct);
+router.post('/', auth, adminOnly, upload.array('images', 5), createProduct);
 router.put('/:id', auth, authorize(Product), updateProduct);
 router.delete('/:id', auth, authorize(Product), deleteProduct);
 router.post('/:id/images', auth, authorize(Product), addImages);
