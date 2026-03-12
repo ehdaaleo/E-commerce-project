@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import Product from "../models/product.js";
 import Category from "../models/category.js";
 import { embedProduct } from "../services/autoEmbedService.js"; // ← NEW
+import CloudinaryService from "../services/cloudinaryService.js";
+import { processImage } from "../middleware/upload.js";
 
 // GET all products
 export const getProducts = async (req, res) => {
@@ -85,7 +87,14 @@ export const createProduct = async (req, res) => {
 
     const { name, description, price, category, sku, inventory } = req.body;
 
-    const categoryExists = await Category.findById(category);
+    // Handle both ObjectId and category name
+    let categoryExists;
+    if (mongoose.Types.ObjectId.isValid(category)) {
+      categoryExists = await Category.findById(category);
+    } else {
+      categoryExists = await Category.findOne({ name: category, isActive: true });
+    }
+    
     if (!categoryExists) {
       return res
         .status(400)
@@ -109,7 +118,97 @@ export const createProduct = async (req, res) => {
       inventory: { quantity: inventory || 0 },
     });
 
-    // ─── AUTO-EMBED: awaited so errors surface in logs ───────────────────
+    // Handle image uploads if files are provided (multipart/form-data)
+    if (req.files && req.files.length > 0) {
+      const uploadedImages = [];
+
+      try {
+        for (let i = 0; i < req.files.length; i++) {
+          const file = req.files[i];
+          
+          // Process image with Sharp
+          const processedImage = await processImage(file.buffer);
+          
+          // Upload to Cloudinary
+          const cloudinaryResult = await CloudinaryService.uploadImage(
+            processedImage.buffer,
+            processedImage.filename
+          );
+
+          const imageObj = {
+            url: cloudinaryResult.secure_url,
+            publicId: cloudinaryResult.public_id,
+            alt: req.body.alt || `Product image ${i + 1}`,
+            isPrimary: i === 0, // First image is primary
+          };
+
+          product.images.push(imageObj);
+          uploadedImages.push(imageObj);
+        }
+
+        await product.save();
+      } catch (uploadError) {
+        // Clean up already uploaded images if there's an error
+        for (const img of uploadedImages) {
+          try {
+            await CloudinaryService.deleteImage(img.publicId);
+          } catch (deleteError) {
+            console.error('Failed to cleanup uploaded image:', deleteError.message);
+          }
+        }
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Image upload failed: ' + uploadError.message 
+        });
+      }
+    }
+
+    // Handle base64 images if provided in JSON body
+    if (req.body.images && Array.isArray(req.body.images)) {
+      let hasValidBase64Image = false;
+      
+      for (let i = 0; i < req.body.images.length; i++) {
+        const base64Image = req.body.images[i];
+        
+        if (!base64Image) continue;
+        
+        if (base64Image.startsWith('data:image')) {
+          hasValidBase64Image = true;
+          
+          try {
+            // Extract base64 data (remove data:image/xxx;base64, prefix)
+            const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
+            const imageBuffer = Buffer.from(base64Data, 'base64');
+            
+            // Process and upload
+            const processedImage = await processImage(imageBuffer);
+            const cloudinaryResult = await CloudinaryService.uploadImage(
+              processedImage.buffer,
+              processedImage.filename
+            );
+
+            const imageObj = {
+              url: cloudinaryResult.secure_url,
+              publicId: cloudinaryResult.public_id,
+              alt: req.body.alt || `Product image ${i + 1}`,
+              isPrimary: product.images.length === 0 && i === 0,
+            };
+
+            product.images.push(imageObj);
+          } catch (base64Error) {
+            console.error(`Failed to process base64 image ${i + 1}:`, base64Error.message);
+          }
+        } else {
+          // Log warning for invalid base64 images
+          console.warn(`Skipping invalid base64 image at index ${i}: does not start with 'data:image'`);
+        }
+      }
+
+      if (hasValidBase64Image) {
+        await product.save();
+      }
+    }
+
     try {
       await embedProduct(product);
     } catch (e) {
@@ -178,7 +277,136 @@ export const deleteProduct = async (req, res) => {
   }
 };
 
-// ADD images
+// UPLOAD product images (file upload)
+export const uploadProductImages = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+    }
+
+    if (!req.files || req.files.length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "No images uploaded" });
+    }
+
+    const uploadedImages = [];
+
+    for (let i = 0; i < req.files.length; i++) {
+      const file = req.files[i];
+      
+      // Process image with Sharp
+      const processedImage = await processImage(file.buffer);
+      
+      // Upload to Cloudinary
+      const cloudinaryResult = await CloudinaryService.uploadImage(
+        processedImage.buffer,
+        processedImage.filename
+      );
+
+      const imageObj = {
+        url: cloudinaryResult.secure_url,
+        publicId: cloudinaryResult.public_id,
+        alt: req.body.alt || `Product image ${i + 1}`,
+        isPrimary: product.images.length === 0 && i === 0, // First image is primary
+      };
+
+      product.images.push(imageObj);
+      uploadedImages.push(imageObj);
+    }
+
+    await product.save();
+
+    res.json({ 
+      success: true, 
+      message: `${uploadedImages.length} image(s) uploaded successfully`,
+      images: product.images 
+    });
+  } catch (error) {
+    console.error("Image upload error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// DELETE product image
+export const deleteProductImage = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+    }
+
+    const imageIndex = product.images.findIndex(
+      img => img.publicId === req.params.imageId
+    );
+
+    if (imageIndex === -1) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Image not found" });
+    }
+
+    // Delete from Cloudinary
+    await CloudinaryService.deleteImage(req.params.imageId);
+
+    // Remove from product
+    product.images.splice(imageIndex, 1);
+
+    // If we deleted the primary image, set the next one as primary
+    if (imageIndex === 0 && product.images.length > 0) {
+      product.images[0].isPrimary = true;
+    }
+
+    await product.save();
+
+    res.json({ success: true, message: "Image deleted successfully" });
+  } catch (error) {
+    console.error("Image delete error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// SET primary image
+export const setPrimaryImage = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+    }
+
+    const imageIndex = product.images.findIndex(
+      img => img.publicId === req.params.imageId
+    );
+
+    if (imageIndex === -1) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Image not found" });
+    }
+
+    // Reset all images to not primary
+    product.images.forEach(img => img.isPrimary = false);
+    
+    // Set selected image as primary
+    product.images[imageIndex].isPrimary = true;
+
+    await product.save();
+
+    res.json({ success: true, message: "Primary image updated successfully" });
+  } catch (error) {
+    console.error("Set primary image error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ADD images (existing function for JSON body)
 export const addImages = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);

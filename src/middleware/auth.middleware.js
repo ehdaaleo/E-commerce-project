@@ -72,7 +72,17 @@ export const authorize = (Model) => {
                     return res.status(403).json({ message: 'Not Allowed' });
                 }
             } else {
-                if (resource.user_id.toString() !== req.user._id.toString()) {
+                // For Product and other models, check createdBy field
+                const ownerField = resource.createdBy ? 'createdBy' : 'user_id';
+                
+                // Deny access if resource has no ownership field
+                if (!resource[ownerField]) {
+                    return res.status(403).json({ 
+                        message: 'Ownership unclear - access denied' 
+                    });
+                }
+                
+                if (resource[ownerField].toString() !== req.user._id.toString()) {
                     return res.status(403).json({ message: 'Not Allowed' });
                 }
             }
