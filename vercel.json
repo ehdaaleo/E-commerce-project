@@ -1,0 +1,24 @@
+{
+    "version": 2,
+    "functions": {
+        "api/**/*.js": {
+            "includeFiles": "src/**"
+        }
+    },
+    "headers": [
+        {
+            "source": "/(.*)",
+            "headers": [
+                { "key": "Access-Control-Allow-Credentials", "value": "true" },
+                { "key": "Access-Control-Allow-Methods", "value": "GET,POST,PUT,DELETE,OPTIONS,PATCH" },
+                { "key": "Access-Control-Allow-Headers", "value": "Content-Type,Authorization,X-Requested-With,Accept" }
+            ]
+        }
+    ],
+    "rewrites": [
+        {
+            "source": "/(.*)",
+            "destination": "/api/index.js"
+        }
+    ]
+}

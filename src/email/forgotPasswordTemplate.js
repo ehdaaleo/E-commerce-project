@@ -2,10 +2,11 @@ export const forgotPasswordTemplate = (name, resetLink) => {
   return `<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reset Your Password</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reset Your Password</title>
 </head>
+
 <body style="margin:0;padding:0;background-color:#f5f7fa;" align="center">
 <div style="text-align:center;padding:40px 16px;">
 
@@ -18,7 +19,7 @@ export const forgotPasswordTemplate = (name, resetLink) => {
       <td style="background-color:#1a1a2e;padding:24px 40px;text-align:left;">
         <span style="font-family:'Helvetica',Arial,sans-serif;
                      font-size:18px;font-weight:700;color:#ffffff;">
-          Note App
+          E-Commerce Store
         </span>
       </td>
     </tr>
@@ -29,9 +30,11 @@ export const forgotPasswordTemplate = (name, resetLink) => {
 
         <!-- Lock icon -->
         <div style="width:72px;height:72px;border-radius:50%;
-                    background-color:#fff0f0;display:inline-block;
+                    background-color:#fff3f3;display:inline-block;
                     line-height:72px;margin-bottom:28px;">
-          <span style="font-size:32px;">🔐</span>
+          <img src="https://cdn-icons-png.flaticon.com/512/6195/6195699.png"
+               width="36" height="36" alt="lock icon"
+               style="display:block;margin:18px auto;" />
         </div>
 
         <h1 style="font-size:22px;font-weight:700;color:#1a1a2e;
@@ -48,13 +51,13 @@ export const forgotPasswordTemplate = (name, resetLink) => {
         <p style="font-size:15px;line-height:24px;color:#6b7280;
                   font-family:'Helvetica',Arial,sans-serif;font-weight:300;
                   max-width:380px;margin:0 auto 32px;">
-          We received a request to reset your password. Click the button below.
+          We received a request to reset your password. Click the button below to choose a new one.
           This link expires in <strong style="color:#1a1a2e;">15 minutes</strong>.
         </p>
 
         <a href="${resetLink}"
            target="_blank"
-           style="background-color:#dc2626;
+           style="background-color:#e74c3c;
                   font-size:15px;
                   font-family:'Helvetica',Arial,sans-serif;
                   font-weight:500;
@@ -68,12 +71,12 @@ export const forgotPasswordTemplate = (name, resetLink) => {
 
         <p style="margin-top:32px;font-size:13px;color:#9ca3af;
                   font-family:'Helvetica',Arial,sans-serif;">
-          If you didn't request this, you can safely ignore this email.<br/>
-          Your password will not change.
+          If you didn't request a password reset, you can safely ignore this email.
+          Your password will remain unchanged.
         </p>
 
         <p style="font-size:12px;color:#d1d5db;font-family:'Helvetica',Arial,sans-serif;">
-          Or copy this link:<br/>
+          Or copy this link into your browser:<br/>
           <span style="word-break:break-all;color:#4361ee;">${resetLink}</span>
         </p>
 
@@ -85,7 +88,7 @@ export const forgotPasswordTemplate = (name, resetLink) => {
       <td style="background-color:#f9fafb;padding:20px 40px;text-align:center;
                  border-top:1px solid #e5e7eb;">
         <p style="margin:0;font-size:12px;color:#9ca3af;font-family:'Helvetica',Arial,sans-serif;">
-          © ${new Date().getFullYear()} Note App. All rights reserved.
+          © ${new Date().getFullYear()} E-Commerce Store. All rights reserved.
         </p>
       </td>
     </tr>

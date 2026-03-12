@@ -12,6 +12,9 @@ export const createCheckoutSession = async (req, res) => {
         if (order.isPaid)
             return res.status(400).json({ message: 'Order already paid' });
 
+        // Build the base URL dynamically from the request
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: order.items.map((item) => ({
@@ -23,11 +26,11 @@ export const createCheckoutSession = async (req, res) => {
                 quantity: item.quantity,
             })),
             mode: 'payment',
-            success_url: `http://localhost:3000/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: 'http://localhost:3000/payment/cancel',
+            success_url: `${baseUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${baseUrl}/payment/cancel`,
             metadata: { orderId: order._id.toString() },
         });
-        // console.log('stripeSessionId:' + session.id);
+
         await Payment.create({
             order_id: order._id,
             user_id: order.user,
@@ -44,34 +47,24 @@ export const createCheckoutSession = async (req, res) => {
 };
 
 export const success = async (req, res) => {
-    // console.log(1);
     const { session_id } = req.query;
     if (!session_id) return res.status(400).send('No session ID');
-    // console.log(2);
+
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:4200';
     let order;
 
     try {
-        // console.log(3);
-
         const session = await stripe.checkout.sessions.retrieve(session_id);
 
         const payment = await Payment.findOne({ stripeSessionId: session.id });
-        // console.log(payment);
-        if (!payment) return res.send('<h1>Payment not found</h1>');
+        if (!payment) return res.redirect(`${clientUrl}/payment/failed`);
 
-        // console.log(4);
         order = await Order.findById(payment.order_id);
 
         if (payment.status === 'pending' && session.payment_status === 'paid') {
             payment.status = 'completed';
-            console.log(5);
-
             await payment.save();
-            // console.log(6);
 
-            // console.log(payment.order_id);
-
-            // console.log(order);
             order.paymentStatus = 'paid';
             order.orderStatus = 'processing';
             order.isPaid = true;
@@ -90,16 +83,10 @@ export const success = async (req, res) => {
             }
         }
 
-        // console.log(5);
-        // console.log(order);
-
-        res.send(`
-            <h1>Payment Successful</h1>
-            <p>Order #${order.orderNumber} has been confirmed.</p>
-            <p>Payment status: ${payment.status}</p>
-            <a href="/">Back to home</a>
-        `);
+        // Redirect to the frontend success page
+        res.redirect(`${clientUrl}/payment/success?order=${order.orderNumber}`);
     } catch (err) {
-        res.status(500).send(err.message);
+        console.error('Payment success error:', err);
+        res.redirect(`${clientUrl}/payment/failed`);
     }
 };
